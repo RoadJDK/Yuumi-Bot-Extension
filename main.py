@@ -86,25 +86,18 @@ async def champion_select(connection):
 
         for action in cs['actions']:
             for subaction in action:
-                if subaction['actorCellId'] == actorCellId:
-                    highest_id = 0
-                    if subaction['id'] > highest_id:
-                        highest_id = subaction['id']
-                        latest_action = subaction
-
-        print(latest_action)
-
-        url = '/lol-champ-select/v1/session/actions/%d' % latest_action['id']
-
-        if latest_action['completed'] == False:
-            if latest_action['type'] == 'ban':
-                # ban a champion
-                response = await connection.request('PATCH', url, data={'championId': 111})
-                response = await connection.request('POST', url+'/complete', data={'championId': 111})
-            if latest_action['type'] == 'pick':
-                # pick a champion
-                response = await connection.request('PATCH', url, data={'championId': 350})
-                response = await connection.request('POST', url+'/complete', data={'championId': 350})
+                print(subaction)
+                url = '/lol-champ-select/v1/session/actions/%d' % subaction['id']
+        
+                if subaction['completed'] == False:
+                    if subaction['type'] == 'ban':
+                        # ban a champion
+                        response = await connection.request('PATCH', url, data={'championId': 111})
+                        response = await connection.request('POST', url+'/complete', data={'championId': 111})
+                    if subaction['type'] == 'pick':
+                        # pick a champion
+                        response = await connection.request('PATCH', url, data={'championId': 350})
+                        response = await connection.request('POST', url+'/complete', data={'championId': 350})
 
 
 connector.start()
