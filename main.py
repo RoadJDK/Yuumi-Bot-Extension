@@ -7,47 +7,58 @@ creating = False
 
 @connector.ready
 async def connect(connection):
-    print('LCU API is ready to be used.')
+    print('Yuumi Bot Extension ready!')
+    print('')
     # await create_game(connection)
 
 
 @connector.close
 async def disconnect(connection):
-    print('Finished task')
+    print('Ended app')
 
 @connector.ws.register('/lol-gameflow/v1/gameflow-phase', event_types=('UPDATE',))
 async def lobby_changed(connection, event):
     print("You are in: " + event.data)
+    print()
     if (event.data == 'None'):
-        # await create_game(connection)
+        await create_game(connection)
         pass
     if (event.data == 'Lobby'):
+        print('Starting queue')
+        print()
         await choose_roles(connection)
         await start_queue(connection)
     if (event.data == 'ReadyCheck'):
+        print('Accepting match')
+        print()
         await accept_queue(connection)
     if (event.data == 'ChampSelect'):
+        print('Welcome to champion select!')
+        print()
         await champion_select(connection)
     if (event.data == 'AfterGame'):
         await champion_select(connection)
     if (event.data == 'InProgress'):
-        print('Game started')
+        print('Game started...')
+        print()
     if (event.data == 'WaitingForStats'):
         print('Waiting for stats')
+        print()
     # honor
     if (event.data == 'PreEndOfGame'):
         await honor_player(connection)
-        print('Game end detected')
+        print('Game ended')
+        print()
     # scoreboard
     if (event.data == 'EndOfGame'):
+        print('Restarting queue')
+        print('')
         await restart_queue(connection)
-        print('Game ended')
 
-'''
+
 async def create_game(connection):
     response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
     time.sleep(3)
-'''
 
 async def choose_roles(connection):
     response = await connection.request('put', '/lol-lobby/v2/lobby/members/localMember/position-preferences', data={"firstPreference": "UTILITY","secondPreference": "MIDDLE",})
@@ -72,28 +83,39 @@ async def champion_select(connection):
     response = await connection.request('GET', '/lol-champ-select/v1/session')
     cs = await response.json()
 
-    actorCellId = -1
-
-    for member in cs['myTeam']:
-            if member['summonerId'] == summonerId:
-                actorCellId = member['cellId']
-
     while True:
         time.sleep(2)
-        print('------')
         response = await connection.request('GET', '/lol-champ-select/v1/session')
         cs = await response.json()
 
         for action in cs['actions']:
             for subaction in action:
-                print(subaction)
                 url = '/lol-champ-select/v1/session/actions/%d' % subaction['id']
-        
+
+                if subaction['type'] == 'ban' and subaction['championId'] == 350 and subaction['completed'] == True:
+                    print('Yuumi ban detected! :(')
+                    print('(automatic dodge not implemented yet -> will dodge automatically)')
+                    print()
+                    # dodge lobby
+                    # response = await connection.request('POST', '/lol-lobby/v1/lobby/custom/cancel-champ-select')
+                    # time.sleep(2)
+                    # response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
+                
+                if subaction['type'] == 'pick' and subaction['championId'] == 350 and subaction['completed'] == True and subaction['isAllyAction'] == False:
+                    print('Yuumi pick detected! :(')
+                    print('(automatic dodge not implemented yet -> will dodge automatically)')
+                    print()
+                    # dodge lobby
+                    # response = await connection.request('POST', '/lol-lobby/v1/lobby/custom/cancel-champ-select')
+                    # time.sleep(2)
+                    # response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
+
                 if subaction['completed'] == False:
                     if subaction['type'] == 'ban':
                         # ban a champion
                         response = await connection.request('PATCH', url, data={'championId': 111})
                         response = await connection.request('POST', url+'/complete', data={'championId': 111})
+
                     if subaction['type'] == 'pick':
                         # pick a champion
                         response = await connection.request('PATCH', url, data={'championId': 350})
