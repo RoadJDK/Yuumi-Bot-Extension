@@ -178,8 +178,36 @@ async def pick_champion(connection, session):
     for action in session['actions']:
         for sub_action in action:
             url = '/lol-champ-select/v1/session/actions/%d' % sub_action['id']
-            await connection.request('PATCH', url, data={'championId': 350})
-            await connection.request('POST', url + '/complete', data={'championId': 350})
+
+            if sub_action['type'] == 'ban' and sub_action['championId'] == 350 and sub_action['completed'] == True:
+                if sentYuumiBanMessage == False:
+                    sentYuumiBanMessage = True
+                    print('Yuumi ban detected! :(')
+                    print('(automatic dodge not implemented yet -> will pick a random champ and afk in base (to remake))')
+                    print()
+                    await connection.request('PATCH', url, data={'championId': 13})
+                    time.sleep(1)
+                    await connection.request('POST', url + '/complete', data={'championId': 13})
+                    # dodge lobby
+                    # response = await connection.request('POST', '/lol-lobby/v1/lobby/custom/cancel-champ-select')
+                    # time.sleep(2)
+                    # response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})         
+            elif sub_action['type'] == 'pick' and sub_action['championId'] == 350 and sub_action['completed'] == True and sub_action['isAllyAction'] == False:
+                if sentYuumiPickedMessage == False:
+                    sentYuumiPickedMessage = True
+                    print('Yuumi pick detected! :(')
+                    print('(automatic dodge not implemented yet -> will pick a random champ and afk in base (to remake)')
+                    print()
+                    await connection.request('PATCH', url, data={'championId': 13})
+                    time.sleep(1)
+                    await connection.request('POST', url + '/complete', data={'championId': 13})
+                    # dodge lobby
+                    # response = await connection.request('POST', '/lol-lobby/v1/lobby/custom/cancel-champ-select')
+                    # time.sleep(2)
+                    # response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
+            else:
+                await connection.request('PATCH', url, data={'championId': 350})
+                await connection.request('POST', url + '/complete', data={'championId': 350})
     is_picking = False
 
 async def ban_champion(connection, session):
