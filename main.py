@@ -8,7 +8,7 @@ creating = False
 async def connect(connection):
     print('Yuumi Bot Extension ready!')
     print('')
-    await champion_select(connection)
+    # await skip_mission_celebrations(connection)
 
 
 @connector.close
@@ -125,37 +125,37 @@ async def champion_select(connection):
         try:
             phase = session['timer']['phase']
             playerId = session['localPlayerCellId']
+
+            # use role for later
+            for block in session['myTeam']:
+                if block['cellId'] == playerId:
+                    try:
+                        role = block['assignedPosition'].upper()
+                    except:
+                        role = 'FILL'
+            
+            if phase == 'PLANNING':
+                if not is_picking:
+                    await pre_pick_champion(connection, session)
+                    if messagePrePick == False:
+                        messagePrePick = True
+                        print('Yuumi Prepicked')
+                        print()
+            if phase == "BAN_PICK":
+                if await block_condition(session, "pick", playerId) and not is_picking:
+                    await pick_champion(connection, session)
+                    if messageBanPick == False:
+                        messageBanPick = True
+                        print('Champion Picked')
+                        print()
+                if await block_condition(session, "ban", playerId) and not is_banning:
+                    await ban_champion(connection, session)
+                    if messagePick == False:
+                        messagePick = True
+                        print('Nautilus Banned')
+                        print()
         except:
             pass
-
-        # use role for later
-        for block in session['myTeam']:
-            if block['cellId'] == playerId:
-                try:
-                    role = block['assignedPosition'].upper()
-                except:
-                    role = 'FILL'
-        
-        if phase == 'PLANNING':
-            if not is_picking:
-                await pre_pick_champion(connection, session)
-                if messagePrePick == False:
-                    messagePrePick = True
-                    print('Yuumi Prepicked')
-                    print()
-        if phase == "BAN_PICK":
-            if await block_condition(session, "pick", playerId) and not is_picking:
-                await pick_champion(connection, session)
-                if messageBanPick == False:
-                    messageBanPick = True
-                    print('Yuumi Picked')
-                    print()
-            if await block_condition(session, "ban", playerId) and not is_banning:
-                await ban_champion(connection, session)
-                if messagePick == False:
-                    messagePick = True
-                    print('Nautilus Banned')
-                    print()
 
 async def block_condition(session, block_type, player_id):
     for array in session['actions']:
@@ -187,6 +187,7 @@ async def pick_champion(connection, session):
 
     for action in session['actions']:
         for sub_action in action:
+            time.sleep(1)
             url = '/lol-champ-select/v1/session/actions/%d' % sub_action['id']
 
             if sub_action['type'] == 'ban' and sub_action['championId'] == 350 and sub_action['completed'] == True:
@@ -195,9 +196,8 @@ async def pick_champion(connection, session):
                     print('Yuumi ban detected! :(')
                     print('(automatic dodge not implemented yet -> will pick a random champ and afk in base (to remake))')
                     print()
-                    await connection.request('PATCH', url, data={'championId': 13})
-                    time.sleep(1)
-                    await connection.request('POST', url + '/complete', data={'championId': 13})
+                    await connection.request('PATCH', url, data={'championId': 27})
+                    await connection.request('POST', url + '/complete', data={'championId': 27})
                     # dodge lobby
                     # response = await connection.request('POST', '/lol-lobby/v1/lobby/custom/cancel-champ-select')
                     # time.sleep(2)
@@ -208,9 +208,8 @@ async def pick_champion(connection, session):
                     print('Yuumi pick detected! :(')
                     print('(automatic dodge not implemented yet -> will pick a random champ and afk in base (to remake)')
                     print()
-                    await connection.request('PATCH', url, data={'championId': 13})
-                    time.sleep(1)
-                    await connection.request('POST', url + '/complete', data={'championId': 13})
+                    await connection.request('PATCH', url, data={'championId': 27})
+                    await connection.request('POST', url + '/complete', data={'championId': 27})
                     # dodge lobby
                     # response = await connection.request('POST', '/lol-lobby/v1/lobby/custom/cancel-champ-select')
                     # time.sleep(2)
@@ -225,9 +224,10 @@ async def ban_champion(connection, session):
     is_banning = True
     for action in session['actions']:
         for sub_action in action:
+            time.sleep(1)
             url = '/lol-champ-select/v1/session/actions/%d' % sub_action['id']
             await connection.request('PATCH', url, data={'championId': 111})
-            await connection.request('POST', url + '/complete', data={'championId': 350})
+            await connection.request('POST', url + '/complete', data={'championId': 111})
     is_banning = False
 
 
