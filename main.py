@@ -104,11 +104,14 @@ async def honor_player(connection):
     await connection.request('POST', '/lol-honor-v2/v1/honor-player', data={"summonerId": 0})
 
 async def skip_missions(connection):
+    time.sleep(1)
     response = await connection.request(method="GET", endpoint="/lol-pre-end-of-game/v1/currentSequenceEvent")
     celebration = await response.data.get('name')
+    time.sleep(1)
     await connection.request(method="POST", endpoint=f"/lol-pre-end-of-game/v1/complete/{celebration}")
 
 async def dismiss_notifications(connection):
+    time.sleep(1)
     await connection.skip_mission_celebrations()
     
 async def restart_queue(connection):
