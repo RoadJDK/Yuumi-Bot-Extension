@@ -126,8 +126,6 @@ async def champion_select(connection):
                     # response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
 
                 if subaction['actorCellId'] == actorCellId:
-                    print("----")
-                    print(subaction)
 
                     url = '/lol-champ-select/v1/session/actions/%d' % subaction['id']
 
