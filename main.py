@@ -8,7 +8,6 @@ creating = False
 async def connect(connection):
     print('Yuumi Bot Extension ready!')
     print('')
-    await dismiss_notifications(connection)
 
 
 @connector.close
@@ -44,7 +43,7 @@ async def lobby_changed(connection, event):
     if (event.data == 'WaitingForStats' or event.data == 'PreEndOfGame'):
         print('Waiting For Stats')
         print()
-        await dismiss_notifications(connection)
+        await skip_mission_celebrations(connection)
     if (event.data == 'EndOfGame'):
         print('Restarting Queue')
         print('')
@@ -94,6 +93,7 @@ async def honor_player(connection):
     await connection.request('POST', '/lol-honor-v2/v1/honor-player', data={"summonerId": 0})
 
 async def skip_mission_celebrations(connection):
+    time.sleep(1)
     response = await connection.request('GET', '/lol-pre-end-of-game/v1/currentSequenceEvent')
     sequence = await response.json()
     celebration = sequence['name']
@@ -101,9 +101,6 @@ async def skip_mission_celebrations(connection):
     time.sleep(1)
     await connection.request('POST', f'/lol-pre-end-of-game/v1/complete/{celebration}')
 
-async def dismiss_notifications(connection):
-    time.sleep(2)
-    await skip_mission_celebrations(connection)
     
 async def restart_queue(connection):
     await connection.request('POST', '/lol-lobby/v2/play-again')
