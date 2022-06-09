@@ -93,13 +93,17 @@ async def honor_player(connection):
     await connection.request('POST', '/lol-honor-v2/v1/honor-player', data={"summonerId": 0})
 
 async def skip_mission_celebrations(connection):
-    time.sleep(1)
-    response = await connection.request('GET', '/lol-pre-end-of-game/v1/currentSequenceEvent')
-    sequence = await response.json()
-    celebration = sequence['name']
+    while True:
+        time.sleep(2)
+        response = await connection.request('GET', '/lol-pre-end-of-game/v1/currentSequenceEvent')
+        sequence = await response.json()
+        celebration = sequence['name']
 
-    time.sleep(1)
-    await connection.request('POST', f'/lol-pre-end-of-game/v1/complete/{celebration}')
+        time.sleep(1)
+        await connection.request('POST', f'/lol-pre-end-of-game/v1/complete/{celebration}')
+        
+        if len(sequence['name'] == 0):
+            break
 
     
 async def restart_queue(connection):
