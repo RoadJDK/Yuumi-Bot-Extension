@@ -6,7 +6,7 @@ creating = False
 
 @connector.ready
 async def connect(connection):
-    print('Yuumi Bot Extension ready!')
+    print('Connected Successfully To Client')
     print('')
 
 
@@ -237,7 +237,8 @@ async def ban_champion(connection, session):
     is_banning = False
 
 
-print('Bot Started! Enjoy And Relax :)')
+print('Loaded Yuumi Bot Extension V1.6')
+print('Enjoy And Relax :)')
 print()
 
 connector.start()
