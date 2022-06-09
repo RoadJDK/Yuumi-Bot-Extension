@@ -41,7 +41,11 @@ async def lobby_changed(connection, event):
     if (event.data == 'InProgress'):
         print('Game Started...')
         print()
-    if (event.data == 'WaitingForStats' or event.data == 'PreEndOfGame'):
+        await honor_player(connection)
+    if (event.data == 'PreEndOfGame'):
+        await honor_player(connection)
+        time.sleep(2)
+    if (event.data in ["WaitingForStats", "PreEndOfGame"]):
         print('Waiting For Stats')
         print()
         await skip_mission_celebrations(connection)
@@ -93,7 +97,6 @@ async def honor_player(connection):
     await connection.request('POST', '/lol-honor-v2/v1/honor-player', data={"summonerId": 0})
 
 async def skip_mission_celebrations(connection):
-    time.sleep(2)
     response = await connection.request('GET', '/lol-pre-end-of-game/v1/currentSequenceEvent')
     sequence = await response.json()
     celebration = sequence['name']
