@@ -8,6 +8,7 @@ creating = False
 async def connect(connection):
     print('Yuumi Bot Extension ready!')
     print('')
+    await dismiss_notifications(connection)
 
 
 @connector.close
@@ -16,47 +17,36 @@ async def disconnect(connection):
 
 @connector.ws.register('/lol-gameflow/v1/gameflow-phase', event_types=('UPDATE',))
 async def lobby_changed(connection, event):
-    print("You are in: " + event.data)
-    print()
     if (event.data == 'None'):
+        print('In Homescreen')
+        print()
         # await create_game(connection)
         pass
     if (event.data == 'Lobby'):
-        print('Starting queue')
+        print('Starting Queue')
         print()
         await choose_roles(connection)
         time.sleep(1)
         await start_queue(connection)
     if (event.data == 'ReadyCheck'):
-        print('Accepting match')
+        print('Accepting Match')
         print()
         await accept_queue(connection)
     if (event.data == 'ChampSelect'):
-        print('Welcome to champion select!')
+        print('Welcome To Champion Select!')
         print()
         await champion_select(connection)
     if (event.data == 'AfterGame'):
         await champion_select(connection)
     if (event.data == 'InProgress'):
-        print('Game started...')
+        print('Game Started...')
         print()
-    if (event.data == 'WaitingForStats'):
-        print('Waiting for stats')
+    if (event.data == 'WaitingForStats' or event.data == 'PreEndOfGame'):
+        print('Waiting For Stats')
         print()
         await dismiss_notifications(connection)
-    # honor
-    if (event.data == 'PreEndOfGame'):
-        print('Game ended')
-        print()
-        await honor_player(connection)
-        time.sleep(1)
-        await skip_missions(connection)
-        time.sleep(1)
-        await dismiss_notifications(connection)
-        time.sleep(1)
-    # scoreboard
     if (event.data == 'EndOfGame'):
-        print('Restarting queue')
+        print('Restarting Queue')
         print('')
         await restart_queue(connection)
 
@@ -77,19 +67,19 @@ async def start_queue(connection):
     if (len(searchstate['errors']) != 0):
         cooldown = int(searchstate['errors'][0]['penaltyTimeRemaining'])
 
-        print("Leaver buster detected!")
+        print("Leaverbuster Detected!")
         print()
         while True:
             response = await connection.request('GET', '/lol-lobby/v2/lobby/matchmaking/search-state')
             searchstate = await response.json()
 
             if (len(searchstate['errors']) == 0):
-                print('over!')
+                print('Leaverbuster Ended!')
                 break
             
             mins, secs = divmod(cooldown, 60)
             timer = '{:02d}:{:02d}'.format(mins, secs)
-            print('Time remaining: ' + timer, end="\r")
+            print('Time Remaining: ' + timer, end="\r")
             time.sleep(1)
             cooldown -= 1
         
@@ -103,16 +93,17 @@ async def accept_queue(connection):
 async def honor_player(connection):
     await connection.request('POST', '/lol-honor-v2/v1/honor-player', data={"summonerId": 0})
 
-async def skip_missions(connection):
+async def skip_mission_celebrations(connection):
+    response = await connection.request('GET', '/lol-pre-end-of-game/v1/currentSequenceEvent')
+    sequence = await response.json()
+    celebration = sequence['name']
+
     time.sleep(1)
-    response = await connection.request(method="GET", endpoint="/lol-pre-end-of-game/v1/currentSequenceEvent")
-    celebration = await response.data.get('name')
-    time.sleep(1)
-    await connection.request(method="POST", endpoint=f"/lol-pre-end-of-game/v1/complete/{celebration}")
+    await connection.request('POST', f'/lol-pre-end-of-game/v1/complete/{celebration}')
 
 async def dismiss_notifications(connection):
-    time.sleep(1)
-    await connection.skip_mission_celebrations()
+    time.sleep(2)
+    await skip_mission_celebrations(connection)
     
 async def restart_queue(connection):
     await connection.request('POST', '/lol-lobby/v2/play-again')
@@ -148,8 +139,8 @@ async def champion_select(connection):
                     if subaction['type'] == 'ban' and subaction['championId'] == 350 and subaction['completed'] == True:
                         if sentYuumiBanMessage == False:
                             sentYuumiBanMessage = True
-                            print('Yuumi ban detected! :(')
-                            print('(automatic dodge not implemented yet -> will dodge automatically)')
+                            print('Yuumi Ban Detected! :(')
+                            print('(Automatic Dodge Not Implemented Yet -> Will Dodge Automatically)')
                             print()
                             # dodge lobby
                             # response = await connection.request('POST', '/lol-lobby/v1/lobby/custom/cancel-champ-select')
@@ -159,8 +150,8 @@ async def champion_select(connection):
                     if subaction['type'] == 'pick' and subaction['championId'] == 350 and subaction['completed'] == True and subaction['isAllyAction'] == False:
                         if sentYuumiPickedMessage == False:
                             sentYuumiPickedMessage = True
-                            print('Yuumi pick detected! :(')
-                            print('(automatic dodge not implemented yet -> will dodge automatically)')
+                            print('Yuumi Pick Detected! :(')
+                            print('(Automatic Dodge Not Implemented Yet -> Will Dodge Automatically)')
                             print()
                             # dodge lobby
                             # response = await connection.request('POST', '/lol-lobby/v1/lobby/custom/cancel-champ-select')
@@ -197,7 +188,7 @@ async def champion_select(connection):
         except:
             pass
 
-print('Bot started! Enjoy and relax :)')
+print('Bot Started! Enjoy And Relax :)')
 print()
 
 connector.start()
