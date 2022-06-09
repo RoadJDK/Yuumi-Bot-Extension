@@ -122,8 +122,11 @@ async def champion_select(connection):
         response = await connection.request('GET', '/lol-champ-select/v1/session')
         session = await response.json()
 
-        phase = session['timer']['phase']
-        playerId = session['localPlayerCellId']
+        try:
+            phase = session['timer']['phase']
+            playerId = session['localPlayerCellId']
+        except:
+            pass
 
         # use role for later
         for block in session['myTeam']:
@@ -178,6 +181,10 @@ async def pre_pick_champion(connection, session):
 async def pick_champion(connection, session):
     global is_picking
     is_picking = True
+
+    sentYuumiBanMessage = False
+    sentYuumiPickedMessage = False
+
     for action in session['actions']:
         for sub_action in action:
             url = '/lol-champ-select/v1/session/actions/%d' % sub_action['id']
