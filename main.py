@@ -101,8 +101,9 @@ async def skip_mission_celebrations(connection):
     sequence = await response.json()
     celebration = sequence['name']
 
-    time.sleep(1)
     await connection.request('POST', f'/lol-pre-end-of-game/v1/complete/{celebration}')
+    time.sleep(1)
+    await connection.request('POST', '/riotclient/kill-and-restart-ux')
 
     
 async def restart_queue(connection):
