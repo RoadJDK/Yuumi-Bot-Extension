@@ -26,7 +26,7 @@ async def lobby_changed(connection, event):
         print('Starting Queue')
         print()
         await choose_roles(connection)
-        time.sleep(1)
+        time.sleep(2)
         await start_queue(connection)
     if (event.data == 'ReadyCheck'):
         print('Accepting Match')
@@ -82,10 +82,9 @@ async def start_queue(connection):
             print('Time Remaining: ' + timer, end="\r")
             time.sleep(1)
             cooldown -= 1
-        
-    print()
-    time.sleep(1)
-    response = await connection.request('POST', '/lol-lobby/v2/lobby/matchmaking/search')
+        print()
+        time.sleep(1)
+        response = await connection.request('POST', '/lol-lobby/v2/lobby/matchmaking/search')
 
 async def accept_queue(connection):
     await connection.request('POST', '/lol-matchmaking/v1/ready-check/accept')
