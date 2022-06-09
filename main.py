@@ -173,7 +173,6 @@ async def champion_select(connection):
                         # prepick champion
                         if subaction['type'] == 'pick' and subaction['completed'] == False and subaction['championId'] == 0:
                             response = await connection.request('PATCH', url, data={'championId': 350})
-                            response = await connection.request('POST', url+'/complete', data={'championId': 350})
                             if sentPrePickMessage == False:
                                 sentPrePickMessage = True
                                 print('Prepicked Yuumi')
