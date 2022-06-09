@@ -42,16 +42,18 @@ async def lobby_changed(connection, event):
         print()
         await honor_player(connection)
     if (event.data == 'PreEndOfGame'):
+        print('Honor Player')
+        print()
         await honor_player(connection)
-        time.sleep(2)
-    if (event.data in ["WaitingForStats", "PreEndOfGame"]):
-        print('Waiting For Stats')
+        print('Restarting Ux')
         print()
         await skip_mission_celebrations(connection)
-        print('Restarting Ux')
         time.sleep(30)
-        print('Restarting Queue')
+        print('Create New Game')
+        print()
         await create_game(connection)
+    if (event.data in ["WaitingForStats", "PreEndOfGame"]):
+        pass
     if (event.data == 'EndOfGame'):
         pass
         # print()
