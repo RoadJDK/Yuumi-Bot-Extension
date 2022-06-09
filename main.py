@@ -42,6 +42,7 @@ async def lobby_changed(connection, event):
         print()
         await honor_player(connection)
     if (event.data == 'PreEndOfGame'):
+        time.sleep(15)
         print('Honor Player')
         print()
         await honor_player(connection)
@@ -60,8 +61,19 @@ async def lobby_changed(connection, event):
         # await restart_queue(connection)
 
 async def create_game(connection):
-   response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
+   response = await connection.request('POST', '/lol-lobby/v2/lobby', data={"queueId": 420})
    time.sleep(3)
+
+async def send_chat(connection, message):
+    response = await connection.request('GET', '/lol-chat/v1/conversations')
+    conversations = await response.json()
+   
+    for conversation in conversations:
+        if conversation['type'] == 'championSelect':
+            lobby_id = conversation['id']
+
+    time.sleep(5)
+    await connection.request('POST', '/lol-chat/v1/conversations/' + lobby_id + '/messages', data={'type': 'chat', 'body': message})
  
 
 async def choose_roles(connection):
@@ -120,44 +132,42 @@ is_banning = False
 async def champion_select(connection):
     global is_picking
     global is_banning
-    messagePrePick = False
-    messageBanPick = False
-    messagePick = False
+    sentPrePick = False
+    sentBanPick = False
+    sentPick = False
+    sentMessage = False
 
     while True:
+        time.sleep(2)
         response = await connection.request('GET', '/lol-champ-select/v1/session')
         session = await response.json()
 
         try:
             phase = session['timer']['phase']
             playerId = session['localPlayerCellId']
-
-            # use role for later
-            for block in session['myTeam']:
-                if block['cellId'] == playerId:
-                    try:
-                        role = block['assignedPosition'].upper()
-                    except:
-                        role = 'FILL'
             
             if phase == 'PLANNING':
                 if not is_picking:
+                    if sentMessage == False:
+                        message = 'I mute all ingame. GL HF!'
+                        print('Sent Message: ' + message)
+                        await send_chat(connection, message)
                     await pre_pick_champion(connection, session)
-                    if messagePrePick == False:
-                        messagePrePick = True
+                    if sentPrePick == False:
+                        sentPrePick = True
                         print('Yuumi Prepicked')
                         print()
             if phase == "BAN_PICK":
                 if await block_condition(session, "pick", playerId) and not is_picking:
                     await pick_champion(connection, session)
-                    if messageBanPick == False:
-                        messageBanPick = True
+                    if sentBanPick == False:
+                        sentBanPick = True
                         print('Champion Picked')
                         print()
                 if await block_condition(session, "ban", playerId) and not is_banning:
                     await ban_champion(connection, session)
-                    if messagePick == False:
-                        messagePick = True
+                    if sentPick == False:
+                        sentPick = True
                         print('Nautilus Banned')
                         print()
         except:
@@ -193,7 +203,6 @@ async def pick_champion(connection, session):
 
     for action in session['actions']:
         for sub_action in action:
-            time.sleep(1)
             url = '/lol-champ-select/v1/session/actions/%d' % sub_action['id']
 
             if sub_action['type'] == 'ban' and sub_action['championId'] == 350 and sub_action['completed'] == True:
