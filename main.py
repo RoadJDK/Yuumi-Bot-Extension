@@ -8,7 +8,6 @@ creating = False
 async def connect(connection):
     print('Yuumi Bot Extension ready!')
     print('')
-    # await skip_mission_celebrations(connection)
 
 
 @connector.close
@@ -49,14 +48,18 @@ async def lobby_changed(connection, event):
         print('Waiting For Stats')
         print()
         await skip_mission_celebrations(connection)
-    if (event.data == 'EndOfGame'):
+        print('Restarting Ux')
+        time.sleep(30)
         print('Restarting Queue')
-        print('')
-        await restart_queue(connection)
+        await create_game(connection)
+    if (event.data == 'EndOfGame'):
+        pass
+        # print()
+        # await restart_queue(connection)
 
-# async def create_game(connection):
-#    response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
-#    time.sleep(3)
+async def create_game(connection):
+   response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
+   time.sleep(3)
  
 
 async def choose_roles(connection):
@@ -107,7 +110,7 @@ async def skip_mission_celebrations(connection):
 
     
 async def restart_queue(connection):
-    await connection.request('POST', '/lol-lobby/v2/play-again')
+    res = await connection.request('POST', '/lol-lobby/v2/play-again')
 
 is_picking = False
 is_banning = False
