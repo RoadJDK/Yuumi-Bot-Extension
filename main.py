@@ -47,6 +47,7 @@ async def lobby_changed(connection, event):
         await honor_player(connection)
         print('Restarting Ux')
         print()
+        time.sleep(5)
         await skip_mission_celebrations(connection)
         time.sleep(30)
         print('Create New Game')
@@ -292,7 +293,7 @@ async def ban_champion(connection, session):
     is_banning = False
 
 
-print('Loaded Yuumi Bot Extension V2.0.3')
+print('Loaded Yuumi Bot Extension V2.0.4')
 print('Enjoy And Relax :)')
 print()
 
