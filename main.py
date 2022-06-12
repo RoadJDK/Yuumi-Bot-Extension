@@ -1,7 +1,10 @@
+import json
 from lcu_driver import Connector
 import time
 
 connector = Connector()
+file = open("config.json")
+config = json.load(file)
 
 @connector.ready
 async def connect(connection):

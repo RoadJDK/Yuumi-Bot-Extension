@@ -1,0 +1,7 @@
+{
+    "mainChamp": "Yuumi",
+    "remakeOnBan": true,
+    "remakeChamp": "Singed",
+    "banChamp": "Nautilus",
+    "gameMode": "SoloDuo"
+}
