@@ -5,6 +5,10 @@ import time
 connector = Connector()
 file = open("config.json")
 config = json.load(file)
+file = open("common/gamemodes.json")
+gamemodes = json.load(file)
+file = open("common/champions.json")
+champions = json.load(file)
 
 @connector.ready
 async def connect(connection):
@@ -64,8 +68,11 @@ async def lobby_changed(connection, event):
         # await restart_queue(connection)
 
 async def create_game(connection):
-   response = await connection.request('POST', '/lol-lobby/v2/lobby', data={"queueId": 420})
-   time.sleep(3)
+    game_mode = config['gameMode'].lower()
+    queue_id = gamemodes[game_mode]
+
+    await connection.request('POST', '/lol-lobby/v2/lobby', data={"queueId": queue_id})
+    time.sleep(3)
 
 async def send_chat(connection, message):
     response = await connection.request('GET', '/lol-chat/v1/conversations')
@@ -150,12 +157,13 @@ async def champion_select(connection):
         try:
             phase = session['timer']['phase']
             playerId = session['localPlayerCellId']
+            pickchamp = config['mainChamp'].lower()
             
             if phase == 'PLANNING':
                 if sentMessage == False:
                     if sentMessage == False:
                         sentMessage = True
-                        message = 'I mute all ingame. GL HF!'
+                        message = config['instantMessage']
                         print('Sent Message: ' + message)
                         print()
                         time.sleep(4)
@@ -164,20 +172,22 @@ async def champion_select(connection):
                 await pre_pick_champion(connection, session)
                 if sentPrePick == False:
                     sentPrePick = True
-                    print('Yuumi Prepicked')
+                    print(f'{pickchamp} Prepicked')
                     print()
             if phase == "BAN_PICK":
                 if await block_condition(session, "ban", playerId) and not is_picking:
+                    banchamp = config['mainChamp'].lower()
+
                     await ban_champion(connection, session)
                     if sentBanPick == False:
                         sentBanPick = True
-                        print('Nautilus Banned')
+                        print(f'{banchamp} Banned')
                         print()
                 elif await block_condition(session, "pick", playerId) and not is_picking:
                     await pick_champion(connection, session)
                     if sentPick == False:
                         sentPick = True
-                        print('Champion Picked')
+                        print(f'{pickchamp} Picked')
                         print()
             if phase == "FINALIZATION":
                 return
@@ -199,16 +209,22 @@ async def block_condition(session, block_type, player_id):
 async def pre_pick_champion(connection, session):
     global is_picking
     is_picking = True
+
     for action in session['actions']:
         for sub_action in action:
             url = '/lol-champ-select/v1/session/actions/%d' % sub_action['id']
-            await connection.request('PATCH', url, data={'championId': 350})
+            champ_pick = config['mainChamp'].lower()
+            pick_id = champions[champ_pick]
+            await connection.request('PATCH', url, data={'championId': pick_id})
     is_picking = False
 
 async def pick_champion(connection, session):
     global is_picking
     global yuumiBanned
     is_picking = True
+
+    champ_pick = config['mainChamp'].lower()
+    pick_id = champions[champ_pick]
 
     response = await connection.request('GET', '/lol-login/v1/session')
     session = await response.json()
@@ -235,11 +251,11 @@ async def pick_champion(connection, session):
 
             for action in cs['actions']:
                 for subaction in action:
-                    if subaction['type'] == 'ban' and subaction['championId'] == 350 and subaction['completed'] == True:
+                    if subaction['type'] == 'ban' and subaction['championId'] == pick_id and subaction['completed'] == True:
                         if sentYuumiBanMessage == False:
                             sentYuumiBanMessage = True
                             yuumiBanned = True
-                            print('Yuumi ban detected! :(')
+                            print(f'{champ_pick} ban detected! :(')
                             print('(Automatic Dodge Not Implemented Yet -> Will Pick A Random Champ And Afk In Base (To Remake))')
                             print()
                             # dodge lobby
@@ -247,11 +263,11 @@ async def pick_champion(connection, session):
                             # time.sleep(2)
                             # response = await connection.request('post', '/lol-lobby/v2/lobby', data={"queueId": 420})
                         
-                    if subaction['type'] == 'pick' and subaction['championId'] == 350 and subaction['completed'] == True and subaction['isAllyAction'] == False:
+                    if subaction['type'] == 'pick' and subaction['championId'] == pick_id and subaction['completed'] == True and subaction['isAllyAction'] == False:
                         if sentYuumiPickedMessage == False:
                             sentYuumiPickedMessage = True
                             yuumiBanned = True
-                            print('Yuumi pick detected! :(')
+                            print(f'{champ_pick} Pick Detected! :(')
                             print('(Automatic Dodge Not Implemented Yet -> Will Pick A Random Champ And Afk In Base (To Remake))')
                             print()
                             # dodge lobby
@@ -261,24 +277,24 @@ async def pick_champion(connection, session):
 
                     if subaction['actorCellId'] == actorCellId and subaction['type'] == 'pick':
                         url = '/lol-champ-select/v1/session/actions/%d' % subaction['id']
+                        champ_pick = config['mainChamp'].lower()
+                        pick_id = champions[champ_pick]
+
                         # pick champion
                         if yuumiBanned == True:
-                            if sentPickMessage == False:
-                                sentPickMessage = True
-                                print("Picked Singed")
-                                print()
-                            await connection.request('PATCH', url, data={'championId': 27})
-                            await connection.request('POST', url + '/complete', data={'championId': 27})
-                            is_picking = False
-                            time.sleep(1)
+                            if config['remakeOnBan'] == True:
+                                if sentPickMessage == False:
+                                    sentPickMessage = True
+                                await connection.request('PATCH', url, data={'championId': pick_id})
+                                await connection.request('POST', url + '/complete', data={'championId': pick_id})
+                                is_picking = False
+                                time.sleep(1)
                             return
                         if yuumiBanned == False:
                             if sentPickMessage == False:
                                 sentPickMessage = True
-                                print("Picked Yuumi")
-                                print()
-                            await connection.request('PATCH', url, data={'championId': 350})
-                            await connection.request('POST', url + '/complete', data={'championId': 350})
+                            await connection.request('PATCH', url, data={'championId': pick_id})
+                            await connection.request('POST', url + '/complete', data={'championId': pick_id})
                             is_picking = False
                             time.sleep(1)
                             return
@@ -291,13 +307,17 @@ async def ban_champion(connection, session):
     for action in session['actions']:
         for sub_action in action:
             url = '/lol-champ-select/v1/session/actions/%d' % sub_action['id']
-            await connection.request('PATCH', url, data={'championId': 111})
-            await connection.request('POST', url + '/complete', data={'championId': 111})
+            champ_ban = config['banChamp'].lower()
+            ban_id = champions[champ_ban]
+
+            await connection.request('PATCH', url, data={'championId': ban_id})
+            await connection.request('POST', url + '/complete', data={'championId': ban_id})
     is_banning = False
 
 
-print('Loaded Yuumi Bot Extension V2.0.4')
+print('Loaded Yuumi Bot Extension V3.0.1')
 print('Enjoy And Relax :)')
+print('(To Start -> Open A Lobby)')
 print()
 
 connector.start()
