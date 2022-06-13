@@ -10,9 +10,12 @@ gamemodes = json.load(file)
 file = open("common/champions.json")
 champions = json.load(file)
 
+dodgeState = 0
+
 @connector.ready
 async def connect(connection):
     print('Connected Successfully To Client')
+    print('(Open A Lobby To Start)')
     print('')
 
 
@@ -89,6 +92,8 @@ async def choose_roles(connection):
     await connection.request('PUT', '/lol-lobby/v2/lobby/members/localMember/position-preferences', data={"firstPreference": "UTILITY","secondPreference": "MIDDLE",})
 
 async def start_queue(connection):
+    global dodgeState
+
     response = await connection.request('POST', '/lol-lobby/v2/lobby/matchmaking/search')
     time.sleep(1)
     response = await connection.request('GET', '/lol-lobby/v2/lobby/matchmaking/search-state')
@@ -96,6 +101,12 @@ async def start_queue(connection):
 
     if (len(searchstate['errors']) != 0):
         cooldown = int(searchstate['errors'][0]['penaltyTimeRemaining']) -1
+        if cooldown < 360:
+            dodgeState = 1
+        elif cooldown < 1800:
+            dodgeState = 2
+        else:
+            dodgeState = 3
 
         print("Leaverbuster Detected!")
         print()
@@ -115,6 +126,8 @@ async def start_queue(connection):
         print()
         time.sleep(1)
         response = await connection.request('POST', '/lol-lobby/v2/lobby/matchmaking/search')
+    else:
+        dodgeState = 0
 
 async def accept_queue(connection):
     await connection.request('POST', '/lol-matchmaking/v1/ready-check/accept')
@@ -176,12 +189,12 @@ async def champion_select(connection):
                     print()
             if phase == "BAN_PICK":
                 if await block_condition(session, "ban", playerId) and not is_picking:
-                    banchamp = config['mainChamp'].lower()
+                    banChamp = config['banChamp'].lower()
 
                     await ban_champion(connection, session)
                     if sentBanPick == False:
                         sentBanPick = True
-                        print(f'{banchamp} Banned')
+                        print(f'{banChamp} Banned')
                         print()
                 elif await block_condition(session, "pick", playerId) and not is_picking:
                     await pick_champion(connection, session)
@@ -221,6 +234,7 @@ async def pre_pick_champion(connection, session):
 async def pick_champion(connection, session):
     global is_picking
     global yuumiBanned
+    global dodgeState
     is_picking = True
 
     champ_pick = config['mainChamp'].lower()
@@ -282,7 +296,7 @@ async def pick_champion(connection, session):
 
                         # pick champion
                         if yuumiBanned == True:
-                            if config['remakeOnBan'] == True:
+                            if config['dynamicDodge'] == True and dodgeState >= 1:
                                 if sentPickMessage == False:
                                     sentPickMessage = True
                                 await connection.request('PATCH', url, data={'championId': pick_id})
@@ -315,9 +329,8 @@ async def ban_champion(connection, session):
     is_banning = False
 
 
-print('Loaded Yuumi Bot Extension V3.0.1')
+print('Loaded Yuumi Bot Extension V3.1')
 print('Enjoy And Relax :)')
-print('(To Start -> Open A Lobby)')
 print()
 
 connector.start()

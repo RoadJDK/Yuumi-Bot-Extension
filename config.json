@@ -1,6 +1,6 @@
 {
     "mainChamp": "yuumi",
-    "remakeOnBan": true,
+    "dynamicDodge": true,
     "remakeChamp": "singed",
     "banChamp": "nautilus",
     "gameMode": "soloduo",
