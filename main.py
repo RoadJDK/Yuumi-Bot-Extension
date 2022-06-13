@@ -11,6 +11,7 @@ file = open("common/champions.json")
 champions = json.load(file)
 
 dodgeState = 0
+gamecount = 1
 
 @connector.ready
 async def connect(connection):
@@ -25,6 +26,7 @@ async def disconnect(connection):
 
 @connector.ws.register('/lol-gameflow/v1/gameflow-phase', event_types=('UPDATE',))
 async def lobby_changed(connection, event):
+    global gamecount
     if (event.data == 'None'):
         print('In Homescreen')
         print()
@@ -41,7 +43,7 @@ async def lobby_changed(connection, event):
         print()
         await accept_queue(connection)
     if (event.data == 'ChampSelect'):
-        print('Welcome To Champion Select!')
+        print(f'Welcome To Champion Select! (Game {gamecount})')
         print()
         await champion_select(connection)
     if (event.data == 'AfterGame'):
@@ -51,6 +53,7 @@ async def lobby_changed(connection, event):
         print()
         await honor_player(connection)
     if (event.data == 'PreEndOfGame'):
+        gamecount = gamecount + 1
         time.sleep(15)
         print('Honor Player')
         print()
@@ -185,7 +188,7 @@ async def champion_select(connection):
                 await pre_pick_champion(connection, session)
                 if sentPrePick == False:
                     sentPrePick = True
-                    print(f'{pickchamp} Prepicked')
+                    print(f'{pickchamp.capitalize()} Prepicked')
                     print()
             if phase == "BAN_PICK":
                 if await block_condition(session, "ban", playerId) and not is_picking:
@@ -194,13 +197,13 @@ async def champion_select(connection):
                     await ban_champion(connection, session)
                     if sentBanPick == False:
                         sentBanPick = True
-                        print(f'{banChamp} Banned')
+                        print(f'{banChamp.capitalize()} Banned')
                         print()
                 elif await block_condition(session, "pick", playerId) and not is_picking:
                     await pick_champion(connection, session)
                     if sentPick == False:
                         sentPick = True
-                        print(f'{pickchamp} Picked')
+                        print(f'{pickchamp.capitalize()} Picked')
                         print()
             if phase == "FINALIZATION":
                 return
