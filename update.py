@@ -17,4 +17,4 @@ urllib.request.urlretrieve('https://raw.githubusercontent.com/RoadJDK/Yuumi-Bot-
 
 Popen("python bot/main.py", shell=True)
 print()
-exit("exit to restart the true program")
+exit("Update Complete! Bot Will Restart.")

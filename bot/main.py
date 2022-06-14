@@ -358,7 +358,7 @@ def update():
     if currentVersion != remote_version:
         Popen('update.py', shell=True)
         print()
-        exit("exit for updating all files")
+        exit("Update In Progress..")
 
 
 update()
