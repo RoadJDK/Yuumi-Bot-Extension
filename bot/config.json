@@ -2,7 +2,7 @@
     "mainChamp": "yuumi",
     "remakeOnBan": true,
     "remakeChamp": "singed",
-    "banChamp": "yuumi",
+    "banChamp": "nautilus",
     "gameMode": "soloduo",
     "instantMessage": "I mute all ingame. GL HF!"
 }
