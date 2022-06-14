@@ -4,5 +4,7 @@
     "remakeChamp": "singed",
     "banChamp": "nautilus",
     "gameMode": "soloduo",
-    "instantMessage": "I mute all ingame. GL HF!"
+    "instantMessage": "I mute all ingame. GL HF!",
+    "primaryRole": "UTILITY",
+    "secondaryRole": "MIDDLE"
 }

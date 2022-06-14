@@ -31,6 +31,7 @@ async def disconnect(connection):
 @connector.ws.register('/lol-gameflow/v1/gameflow-phase', event_types=('UPDATE',))
 async def lobby_changed(connection, event):
     global gamecount
+
     if (event.data == 'None'):
         print('In Homescreen')
         print()
@@ -76,6 +77,8 @@ async def lobby_changed(connection, event):
         pass
     if (event.data == 'EndOfGame'):
         pass
+    if (event.data == 'Reconnect'):
+        await reconnect(connection)
         # print()
         # await restart_queue(connection)
 
@@ -98,7 +101,13 @@ async def send_chat(connection, message):
  
 
 async def choose_roles(connection):
-    await connection.request('PUT', '/lol-lobby/v2/lobby/members/localMember/position-preferences', data={"firstPreference": "UTILITY","secondPreference": "MIDDLE",})
+    primary_role = config['primaryRole']
+    secondary_role = config['secondaryRole']
+
+    await connection.request('PUT', '/lol-lobby/v2/lobby/members/localMember/position-preferences', data={"firstPreference": primary_role,"secondPreference": secondary_role,})
+
+async def reconnect(connection):
+    await connection.request('POST', '/lol-gameflow/v1/reconnect')
 
 async def start_queue(connection):
     global dodgeState
