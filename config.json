@@ -1,8 +1,8 @@
 {
     "mainChamp": "yuumi",
-    "dynamicDodge": true,
+    "remakeOnBan": true,
     "remakeChamp": "singed",
-    "banChamp": "nautilus",
+    "banChamp": "yuumi",
     "gameMode": "soloduo",
     "instantMessage": "I mute all ingame. GL HF!"
 }

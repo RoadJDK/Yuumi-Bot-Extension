@@ -43,6 +43,8 @@ async def lobby_changed(connection, event):
         print()
         await accept_queue(connection)
     if (event.data == 'ChampSelect'):
+        print("----------------------------")
+        print()
         print(f'Welcome To Champion Select! (Game {gamecount})')
         print()
         await champion_select(connection)
@@ -177,20 +179,26 @@ async def champion_select(connection):
             
             if phase == 'PLANNING':
                 if sentMessage == False:
-                    if sentMessage == False:
-                        sentMessage = True
-                        message = config['instantMessage']
-                        print('Sent Message: ' + message)
-                        print()
-                        time.sleep(4)
-                        await send_chat(connection, message)
-                        time.sleep(1)
+                    sentMessage = True
+                    message = config['instantMessage']
+                    print('Sent Message: ' + message)
+                    print()
+                    time.sleep(4)
+                    await send_chat(connection, message)
                 await pre_pick_champion(connection, session)
                 if sentPrePick == False:
                     sentPrePick = True
                     print(f'{pickchamp.capitalize()} Prepicked')
                     print()
             if phase == "BAN_PICK":
+                if sentMessage == False:
+                    sentMessage = True
+                    message = config['instantMessage']
+                    time.sleep(3)
+                    await send_chat(connection, message)
+                    print('Sent Message: ' + message)
+                    print()
+                    time.sleep(1)
                 if await block_condition(session, "ban", playerId) and not is_picking:
                     banChamp = config['banChamp'].lower()
 
@@ -299,17 +307,25 @@ async def pick_champion(connection, session):
 
                         # pick champion
                         if yuumiBanned == True:
-                            if config['dynamicDodge'] == True and dodgeState >= 1:
+                            if config['remakeOnBan'] == True:
+                                champ_pick = config['remakeChamp'].lower()
+                                pick_id = champions[champ_pick]
                                 if sentPickMessage == False:
                                     sentPickMessage = True
+                                    print(f"Picked {champ_pick.capitalize()}")
+                                    print()
                                 await connection.request('PATCH', url, data={'championId': pick_id})
                                 await connection.request('POST', url + '/complete', data={'championId': pick_id})
                                 is_picking = False
                                 time.sleep(1)
                             return
                         if yuumiBanned == False:
+                            champ_pick = config['mainChamp'].lower()
+                            pick_id = champions[champ_pick]
                             if sentPickMessage == False:
                                 sentPickMessage = True
+                                print(f"Picked {champ_pick.capitalize()}")
+                                print()
                             await connection.request('PATCH', url, data={'championId': pick_id})
                             await connection.request('POST', url + '/complete', data={'championId': pick_id})
                             is_picking = False
@@ -332,7 +348,7 @@ async def ban_champion(connection, session):
     is_banning = False
 
 
-print('Loaded Yuumi Bot Extension V3.1')
+print('Loaded Yuumi Bot Extension V3.1.4')
 print('Enjoy And Relax :)')
 print()
 

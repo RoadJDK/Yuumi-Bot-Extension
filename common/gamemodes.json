@@ -2,5 +2,8 @@
     "blind": 430,
     "draft": 400,
     "soloduo": 420,
-    "flex": 440
+    "flex": 440,
+    "intro": 830,
+    "beginner": 840,
+    "Intermediate": 850
 }
