@@ -4,7 +4,7 @@ from lcu_driver import Connector
 import time
 from subprocess import Popen
 
-currentVersion = '4.0'
+currentVersion = '4.1'
 
 connector = Connector()
 file = open("bot/config.json")
