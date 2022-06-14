@@ -1,13 +1,17 @@
 import json
+import requests
 from lcu_driver import Connector
 import time
+from subprocess import Popen
+
+currentVersion = '3.1.4'
 
 connector = Connector()
-file = open("config.json")
+file = open("bot/config.json")
 config = json.load(file)
-file = open("common/gamemodes.json")
+file = open("bot/common/gamemodes.json")
 gamemodes = json.load(file)
-file = open("common/champions.json")
+file = open("bot/common/champions.json")
 champions = json.load(file)
 
 dodgeState = 0
@@ -347,9 +351,20 @@ async def ban_champion(connection, session):
             await connection.request('POST', url + '/complete', data={'championId': ban_id})
     is_banning = False
 
+def update():
+    response = requests.get('https://raw.githubusercontent.com/RoadJDK/Yuumi-Bot-Extension/main/version')
+    remote_version = response.text.strip()
 
-print('Loaded Yuumi Bot Extension V3.1.4')
+    if currentVersion == remote_version:
+        print("y")
+        Popen('update.py', shell=True)
+        exit("exit for updating all files")
+
+
+update()
+
+print(f'Loaded Yuumi Bot Extension V{currentVersion}')
 print('Enjoy And Relax :)')
 print()
 
-connector.start()
+#connector.start()
