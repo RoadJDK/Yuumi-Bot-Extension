@@ -363,7 +363,7 @@ def update():
 
 update()
 
-print(f'Loaded Yuumi Bot Extension V{currentVersion}')
+print(f'Loaded1123123123123 Yuumi Bot Extension V{currentVersion}')
 print('Enjoy And Relax :)')
 print()
 
