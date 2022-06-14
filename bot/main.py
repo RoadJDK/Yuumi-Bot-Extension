@@ -4,7 +4,7 @@ from lcu_driver import Connector
 import time
 from subprocess import Popen
 
-currentVersion = '4.0.1'
+currentVersion = '4.0'
 
 connector = Connector()
 file = open("bot/config.json")
@@ -356,14 +356,14 @@ def update():
     remote_version = response.text.strip()
 
     if currentVersion != remote_version:
-        Popen('update.py', shell=True)
+        Popen('python update.py', shell=True)
         print()
         exit("Update In Progress..")
 
 
 update()
 
-print(f'Loaded1123123123123 Yuumi Bot Extension V{currentVersion}')
+print(f'Loaded Yuumi Bot Extension V{currentVersion}')
 print('Enjoy And Relax :)')
 print()
 
